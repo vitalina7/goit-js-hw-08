@@ -1,32 +1,40 @@
 import throttle from "lodash.throttle";
+
+
 const form = document.querySelector('.feedback-form');
-const textarea = document.querySelector('.feedback-form textarea')
-form.addEventListener('submit', onFormSubmit);
-textarea.addEventListener('input', throttle(onInputSubmit,500));
+const email = document.querySelector('input[name="email');
+const message = document.querySelector('textarea[name="message');
 const DATA_FROM_STORAGE = 'feedback-form-state';
-function onFormSubmit(event) {
-    event.preventDefault();
-   localStorage.removeItem(DATA_FROM_STORAGE);
-    event.target.reset();
+ 
+form.addEventListener('input', throttle(e => {
+    const objectToSave = { email: email.value, message: message.value };
+    localStorage.setItem(DATA_FROM_STORAGE, JSON.stringify(objectToSave))
+}, 500))
 
-    const formData = new FormData(event.currentTarget.value);
-    formData.forEach((value, name) => {
-        console.log('onFormSubmit => name' , name);
-        console.log('onFormSubmit => name' , value);
-    })
-}
-
-
-function onInputSubmit(event) {
-    const message = event.currentTarget.value;
-    localStorage.setItem(DATA_FROM_STORAGE, message);
-}
-function loadData() {
-    const savedMessage = localStorage.getItem(DATA_FROM_STORAGE);
-    if (savedMessage) {
-        textarea.value = savedMessage;
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (email.value === ' ' || message.value === ' ') {
+        return alert('Заповніть всі поля');
     }
-  }
+    console.log({ email: email.value, message: message.value });
+    form.reset();
+    localStorage.removeItem(DATA_FROM_STORAGE);
+})
 
-loadData();
+const load = key => {
+  try {
+    const serializedState = localStorage.getItem(key); 
+    return serializedState === null ? undefined : JSON.parse(serializedState);
+  } catch (error) {
+    console.error('Get state error: ', error.message);
+  }
+};
+
+const storageData = load(DATA_FROM_STORAGE);
+
+if (storageData) {
+    email.value = storageData.email;
+    message.value = storageData.message;
+}
+
 
